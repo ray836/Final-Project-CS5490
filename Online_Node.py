@@ -3,6 +3,7 @@
 # Final Project - Custom MCTLS Offline Server
 
 import socket
+import Functions
 
 
 def connect_to_middle_node(middle_node_socket):
@@ -16,6 +17,11 @@ def ssl_handshake(middle_node_socket):
 
 def data_transfer(middle_node_socket, data):
     pass
+
+
+def testing_code(given_socket):
+    test_dictionary = {"msg": "hello"}
+    given_socket.sendall(Functions.wrap_to_send(test_dictionary))
 
 
 # start of program
