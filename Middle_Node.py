@@ -24,6 +24,7 @@ def testing_code(given_socket):
     print(test_dict)
     print(test_dict["msg"])
 
+
 # start of program
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((socket.gethostname(), 5432))

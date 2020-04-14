@@ -85,7 +85,7 @@ def loadCert(PEM_bytes):
     return cert
 
 
-def verifyCertificate(cert_to_check, issuer_public_key):
+def verifyCertificateSignature(cert_to_check, issuer_public_key):
     # This will throw an error if verify fails
     issuer_public_key.verify(
         cert_to_check.signature,
