@@ -9,11 +9,12 @@ import os
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.backends.openssl import x509
+from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import padding as sym_padding
 from cryptography.hazmat.primitives.ciphers import algorithms, Cipher, modes
+from cryptography.hazmat.primitives import serialization
 
 
 # --------- Socket/Transmission Helper Functions -----
@@ -83,6 +84,10 @@ def createCertificate(key):
 def loadCert(PEM_bytes):
     cert = x509.load_pem_x509_certificate(PEM_bytes, default_backend())
     return cert
+
+
+def certificate_to_byes(cert):
+    return cert.public_bytes(serialization.Encoding.PEM)
 
 
 def verifyCertificateSignature(cert_to_check, issuer_public_key):
