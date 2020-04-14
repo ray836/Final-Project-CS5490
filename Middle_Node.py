@@ -58,15 +58,20 @@ def ssl_handshake(node_socket):
 
 
 def data_transfer(given_socket):
-   pass
+    pass
 
 
-# start of program
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((socket.gethostname(), 5000))
-s.listen()
+def main():
+    # start of program
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((socket.gethostname(), 5432))
+    s.listen()
 
-while True:
-    online_node_socket, address = s.accept()
-    print(f"Connection from {address}")
-    handle_online_node_connection(online_node_socket, address)
+    while True:
+        online_node_socket, address = s.accept()
+        print(f"Connection from {address}")
+        handle_online_node_connection(online_node_socket, address)
+
+
+if __name__ == '__main__':
+    main()
