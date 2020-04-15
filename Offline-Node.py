@@ -2,15 +2,16 @@
 # Bruce Englert, Meghana Gupta, Ray Grant
 
 import socket
+import Functions
+
+private_key = Functions.generate_private_key()
 
 
 def handle_middle_node_connection(middle_node_socket, address):
-    ssl_handshake(middle_node_socket)
-    data_transfer(middle_node_socket)
-
-
-def ssl_handshake(middle_node_socket):
-    pass
+    if Functions.server_ssl_handshake(middle_node_socket, "Offline Node", private_key):
+        data_transfer(middle_node_socket)
+    else:
+        print("handshake failed")
 
 
 def data_transfer(middle_node_socket):
