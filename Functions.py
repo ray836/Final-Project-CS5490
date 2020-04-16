@@ -45,23 +45,31 @@ def wrap_to_send(inner_python_dictionary):
 # ---------- Functions needed for SSL ---------
 
 # Generate a DHPrivateKey, DHPublicKey pair for a user
-def generate_diffie_hellman_private_public_key():
-    parameters = dh.DHParameterNumbers(p, g).parameters(default_backend())
+def generate_dh_private_public_key():
+    pn = dh.DHParameterNumbers(p, g)
+    parameters = pn.parameters(default_backend())
 
     private_key = parameters.generate_private_key()
     public_key = private_key.public_key()
 
     return private_key, public_key
 
+def create_dh_public_key(public_key_num: int):
+    pn = dh.DHParameterNumbers(p,g)
+    public_numbers = dh.DHPublicNumbers(public_key_num, pn)
+    public_key = public_numbers.public_key(default_backend())
+
+    return public_key
 
 # Generate the shared key for a session between the user and peer
-def generate_diffie_hellman_shared_key(self_private_key, peer_public_key):
-
+def generate_dh_shared_key(self_private_key: dh.DHPrivateKey, peer_public_key_num: int):
+    peer_public_key = create_dh_public_key(peer_public_key_num)
     shared_key = self_private_key.exchange(peer_public_key)
     derived_key = HKDF(
         algorithm = hashes.SHA256(),
         length = 32,
         salt = None,
+        info=b'diffie hellman key',
         backend = default_backend()
     ).derive(shared_key)
     return derived_key
