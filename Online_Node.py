@@ -5,11 +5,12 @@
 import socket
 import cryptography
 import Functions
+import Modified_SSL_Handshake
 
 private_key = Functions.generate_private_key()
 
 def connect_to_middle_node(middle_node_socket):
-    if Functions.client_ssl_handshake(middle_node_socket, "Online Node", private_key):
+    if Modified_SSL_Handshake.client_ssl_handshake(middle_node_socket, "Online Node", private_key):
         data_transfer(middle_node_socket, "data")
 
 

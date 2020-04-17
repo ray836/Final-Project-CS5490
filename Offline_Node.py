@@ -3,12 +3,13 @@
 
 import socket
 import Functions
+import Modified_SSL_Handshake
 
 private_key = Functions.generate_private_key()
 
 
 def handle_middle_node_connection(middle_node_socket, address):
-    if Functions.server_ssl_handshake(middle_node_socket, "Offline Node", private_key):
+    if Modified_SSL_Handshake.server_ssl_handshake(middle_node_socket, "Offline Node", private_key):
         data_transfer(middle_node_socket)
     else:
         print("handshake failed")

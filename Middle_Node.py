@@ -4,19 +4,20 @@
 import socket
 import cryptography
 import Functions
+import Modified_SSL_Handshake
 
 private_key = Functions.generate_private_key()
 
 
 def perform_online_node_handshake(online_node_socket, address):
-    if Functions.server_ssl_handshake(online_node_socket, "Middle Node", private_key):
+    if Modified_SSL_Handshake.server_ssl_handshake(online_node_socket, "Middle Node", private_key):
         data_transfer(online_node_socket)
     else:
         print("handshake failed")
 
 
 def perform_offline_node_handshake(online_node_socket):
-    if Functions.client_ssl_handshake(online_node_socket, "Middle Node", private_key):
+    if Modified_SSL_Handshake.client_ssl_handshake(online_node_socket, "Middle Node", private_key):
         data_transfer(online_node_socket)
     else:
         print("handshake to offline node failed")
