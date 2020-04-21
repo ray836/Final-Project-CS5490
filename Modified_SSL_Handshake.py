@@ -1,3 +1,5 @@
+import socket
+
 from Functions import *
 
 
@@ -16,13 +18,13 @@ def server_ssl_handshake(node_socket, node_name, private_key):
     else:
         print(f"[{node_name}] Unsupported data encryption algs")
         node_socket.close()
-        return False
+        return [False, None]
     if "AES" in received_msg1["supported_integrity_algs"]:
         print(f"[{node_name}] Chosen Integrity protection is AES")
     else:
         print(f"[{node_name}] Unsupported integrity algs")
         node_socket.close()
-        return False
+        return [False, None]
 
     online_node_certificate = loadCert(received_msg1["certificate"])
     online_node_public_key = online_node_certificate.public_key()
@@ -33,7 +35,7 @@ def server_ssl_handshake(node_socket, node_name, private_key):
     except cryptography.exceptions.InvalidSignature:
         print(f"[{node_name}] Signaturew was not valid.")
         node_socket.close()
-        return False
+        return [False, online_node_public_key]
 
     # create certificate
     cert = createCertificate(private_key)
@@ -62,7 +64,7 @@ def server_ssl_handshake(node_socket, node_name, private_key):
     except Exception:
         print("Signed Diffie Hellman was not verified")
         node_socket.close()
-        return False
+        return [False, online_node_public_key]
 
     # generate DH keys
     [dh_private_key, dh_public_key] = generate_dh_private_public_key()
@@ -99,9 +101,9 @@ def server_ssl_handshake(node_socket, node_name, private_key):
     else:
         print(f"[{node_name}] MAC was not validated.")
         node_socket.close()
-        return False
+        return [False, online_node_public_key]
 
-    return True
+    return [True, online_node_public_key]
 
 
 def client_ssl_handshake(node_socket, node_name, private_key):
@@ -136,7 +138,7 @@ def client_ssl_handshake(node_socket, node_name, private_key):
     except cryptography.exceptions.InvalidSignature:
         print("Verification Failed!")
         node_socket.close()
-        return False
+        return [False, ""]
 
     # generate DH keys
     [dh_private_key, dh_public_key] = generate_dh_private_public_key()
@@ -160,7 +162,7 @@ def client_ssl_handshake(node_socket, node_name, private_key):
     except Exception:
         print("Signed Diffie Hellman was not verified")
         node_socket.close()
-        return False
+        return [False, ""]
 
     shared_k = generate_dh_shared_key(dh_private_key, client_dh_public_key.public_numbers().y)
     print(f"[{node_name}]shared key: ", shared_k)
@@ -179,7 +181,7 @@ def client_ssl_handshake(node_socket, node_name, private_key):
     else:
         print("[Middle Node] MAC was not validated.")
         node_socket.close()
-        return False
+        return [False, shared_k]
 
     # Generate MAC
     created_MAC = create_MAC(all_msgs)
@@ -190,6 +192,33 @@ def client_ssl_handshake(node_socket, node_name, private_key):
     all_msgs += str(msg3_5)
     print("[Middle Node] Sending: ", str(msg3_5))
     node_socket.sendall(wrap_to_send(msg3_5))
+    return [True, shared_k]
 
-    node_socket.close()
-    return True
+
+def gen_priv_dh_send_pub_dh(node_socket, node_name, private_key):
+    # Send diffie hellman for offline node
+    print(f"{node_name} is attempting to transfer DH")
+    [pivate_dif_through, public_dif_through] = generate_dh_private_public_key()
+    msg4 = {"dh_public_through": public_dif_through.public_bytes(Encoding.DER, PublicFormat.SubjectPublicKeyInfo)}
+    print(f"[{node_name}] Sending: ", msg4)
+    node_socket.sendall(wrap_to_send(msg4))
+
+    return pivate_dif_through
+
+
+def connect_to_node(port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.connect((socket.gethostname(), port))
+    return s
+
+
+def handle_node_connection(port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind((socket.gethostname(), port))
+    s.listen()
+
+    # TODO: Make Multithreaded
+    connected_node_socket, node_address = s.accept()
+    return connected_node_socket
