@@ -1,8 +1,6 @@
 # Middle Node
 # Bruce Englert, Meghana Gupta, Ray Grant
 
-import socket
-import cryptography
 import Functions
 import Modified_SSL_Handshake
 
@@ -32,10 +30,6 @@ def perform_offline_handshake(online_node_socket):
     return successful_handshake
 
 
-def data_transfer(given_socket):
-    pass
-
-
 def handle_DH_online_connection():
     online_socket = Modified_SSL_Handshake.handle_node_connection(5432)
 
@@ -54,7 +48,6 @@ def initiate_DH_offline_connection(node_1_public_dh):
     # send online DH
     offline_socket.sendall(Functions.wrap_to_send(node_1_public_dh))
 
-    # DIP - 6
     node_3_dh = Functions.read_message_with_delimiter(offline_socket)
     offline_socket.close()
     return node_3_dh
@@ -73,7 +66,7 @@ def initiate_DH_online_connection(node_2_public_dh):
 
 
 def transfer_data(data):
-    offline_socket = Modified_SSL_Handshake.connect_to_node(5433)  # TODO: might need to change ports
+    offline_socket = Modified_SSL_Handshake.connect_to_node(5433)
     offline_socket.send(Functions.wrap_to_send(data))
     offline_socket.close()
 
