@@ -3,6 +3,8 @@
 
 import Functions
 import Modified_SSL_Handshake
+import MySQLdb
+
 
 # DIP - Delayed Intermediate Protocol
 
@@ -53,6 +55,10 @@ def initiate_DH_offline_connection(node_1_public_dh):
     return node_3_dh
 
 
+def sanitize_data(data_string):
+    return MySQLdb.escape_string(data_string).decode()
+
+
 def initiate_DH_online_connection(node_2_public_dh):
     online_socket = Modified_SSL_Handshake.connect_to_node(5432)
 
@@ -83,4 +89,5 @@ def main():
     # TODO: Integrate timing for additional data transferring.
 
 if __name__ == '__main__':
-    main()
+    #main()
+    print(sanitize_data("this is it ' or 1 = 1"))
