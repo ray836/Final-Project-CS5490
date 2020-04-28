@@ -28,7 +28,6 @@ def perform_online_handshake(online_node_socket):
                                                                                               "Middle Node",
                                                                                               private_key)
     online_shared_key = computed_shared_key
-
     return successful_handshake
 
 
@@ -58,6 +57,25 @@ def send_next_time(node_socket):
     node_socket.sendall(Functions.wrap_to_send(next_t_msg))
 
 
+def receive_verify_online_n(node_socket):
+    global online_n
+
+    n_msg = Functions.read_message_with_delimiter(node_socket)
+    decrypted_n_bytes = Functions.aes_decrypt(n_msg["n"]["iv"], online_shared_key, n_msg["n"]["encrypted_n"])
+    decrypted_n = int.from_bytes(decrypted_n_bytes, byteorder='big')
+
+    if decrypted_n == online_n-1:
+        print("[Middle Node] n was received and verified")
+    else:
+        print("[Middle Node] given n failed authorization test", online_n)
+        print("should be: ", decrypted_n)
+        node_socket.close()
+
+
+def sanitize_data(data_string):
+    return MySQLdb.escape_string(data_string).decode()
+
+
 def handle_DH_1_online_connection():
     global online_shared_key
 
@@ -73,11 +91,8 @@ def handle_DH_1_online_connection():
     return given_dh_value
 
 
-def receive_data_transfer(node_socket):
-    return Functions.read_message_with_delimiter(node_socket)
-
-
 def initiate_DH_offline_connection(node_1_public_dh):
+    #TODO: perform ssl and get shared key
     offline_socket = Modified_SSL_Handshake.connect_to_node(5433)
 
     # send online DH
@@ -86,25 +101,6 @@ def initiate_DH_offline_connection(node_1_public_dh):
     node_3_dh = Functions.read_message_with_delimiter(offline_socket)
     offline_socket.close()
     return node_3_dh
-
-
-def sanitize_data(data_string):
-    return MySQLdb.escape_string(data_string).decode()
-
-
-def receive_verify_online_n(node_socket):
-    global online_n
-
-    n_msg = Functions.read_message_with_delimiter(node_socket)
-    decrypted_n_bytes = Functions.aes_decrypt(n_msg["n"]["iv"], online_shared_key, n_msg["n"]["encrypted_n"])
-    decrypted_n = int.from_bytes(decrypted_n_bytes, byteorder='big')
-
-    if decrypted_n == online_n-1:
-        print("[Middle Node] n was received and verified")
-    else:
-        print("[Middle Node] given n failed authorization test", online_n)
-        print("should be: ", decrypted_n)
-        node_socket.close()
 
 
 def handle_DH_2_online_connection(node_2_public_dh):
@@ -140,7 +136,7 @@ def receive_transfer_data():
     send_n(online_socket)
     time.sleep(2)
     send_next_time(online_socket)
-    print("received data")
+    print("[Middle Node] Received data")
     online_socket.close()
     return data_to_transfer
 
@@ -150,13 +146,14 @@ def main():
     print("[Middle Node] Received online dh part")
     offline_dh_value = initiate_DH_offline_connection(online_dh_value)
     print("[Middle Node] Received offline dh part")
-    time.sleep(next_time-5)
+    time.sleep(next_time-2)
     handle_DH_2_online_connection(offline_dh_value)
     print("[Middle Node] Transferring data...")
 
+    # runs 10 times to simulate real world use
     for i in range(1, 10):
         print("sleeping...", next_time)
-        time.sleep(next_time - 1)
+        time.sleep(next_time - 2)
         print("sending data to transfer")
         data_to_transfer = receive_transfer_data()
         transfer_data(data_to_transfer)

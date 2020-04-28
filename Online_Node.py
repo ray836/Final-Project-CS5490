@@ -13,22 +13,6 @@ n = 0
 next_time = 0
 
 
-def initial_middle_connection_send_dh():
-    global n
-    global middle_shared_key
-
-    print("tyrying to send dh...")
-    middle_socket = Modified_SSL_Handshake.connect_to_node(5432)
-    [successful_handshake, shared_k] = Modified_SSL_Handshake.client_ssl_handshake(middle_socket, "Online Node", private_key)
-
-    private_dh = Modified_SSL_Handshake.gen_priv_dh_send_pub_dh(middle_socket, "Online Node", private_key)
-    middle_shared_key = shared_k
-
-    receive_n(middle_socket)
-    receive_next_time(middle_socket)
-    return private_dh
-
-
 def receive_n(node_socket):
     global n
     n_msg = Functions.read_message_with_delimiter(node_socket)
@@ -52,13 +36,28 @@ def receive_next_time(node_socket):
     next_time = int.from_bytes(next_time_bytes, byteorder='big')
     print("received time: ", next_time)
 
+
+def initial_middle_connection_send_dh():
+    global n
+    global middle_shared_key
+
+    middle_socket = Modified_SSL_Handshake.connect_to_node(5432)
+    [successful_handshake, shared_k] = Modified_SSL_Handshake.client_ssl_handshake(middle_socket, "Online Node", private_key)
+    print("[Online Node] Sending DH portion")
+    private_dh = Modified_SSL_Handshake.gen_priv_dh_send_pub_dh(middle_socket, "Online Node", private_key)
+    middle_shared_key = shared_k
+
+    receive_n(middle_socket)
+    receive_next_time(middle_socket)
+    return private_dh
+
+
 def second_dh_connection(private_dh_key):
     print("connecting to middle node...")
     middle_socket = Modified_SSL_Handshake.connect_to_node(5432)  # TODO: might need to change port
 
     # send authorization n
     send_n(middle_socket)
-    print("[Online Node] sent n...")
 
     dh_msg = Functions.read_message_with_delimiter(middle_socket)
     print("[Online Node] Received: ", dh_msg)
@@ -72,10 +71,8 @@ def second_dh_connection(private_dh_key):
 
 
 def send_data_transfer(shared_key, data):
-
     middle_socket = Modified_SSL_Handshake.connect_to_node(5432)
     send_n(middle_socket)
-
 
     # encrypt Data
     [iv, encrypted_data] = Functions.aes_encrypt(shared_key, data)
@@ -97,6 +94,7 @@ time.sleep(next_time)
 shared_dh = second_dh_connection(private_dh)
 print("[Online Node] Established DH: ", shared_dh)
 
+# This sends transfer data 10 times to illustrate real world use.
 for i in range(1, 10):
     print("sleeping", next_time)
     time.sleep(next_time)
