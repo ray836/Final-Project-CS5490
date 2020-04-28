@@ -101,9 +101,9 @@ def server_ssl_handshake(node_socket, node_name, private_key):
     else:
         print(f"[{node_name}] MAC was not validated.")
         node_socket.close()
-        return [False, online_node_public_key]
+        return [False, shared_k]
 
-    return [True, online_node_public_key]
+    return [True, shared_k]
 
 
 def client_ssl_handshake(node_socket, node_name, private_key):
