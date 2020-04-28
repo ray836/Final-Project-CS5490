@@ -123,7 +123,9 @@ def handle_DH_2_online_connection(node_2_public_dh):
 
 def transfer_data(data):
     offline_socket = Modified_SSL_Handshake.connect_to_node(5433)
+    print("connected to offline node")
     offline_socket.send(Functions.wrap_to_send(data))
+    print("sent")
     offline_socket.close()
 
 
@@ -156,6 +158,7 @@ def main():
         time.sleep(next_time - 2)
         print("sending data to transfer")
         data_to_transfer = receive_transfer_data()
+        print("transfering data...")
         transfer_data(data_to_transfer)
 
 

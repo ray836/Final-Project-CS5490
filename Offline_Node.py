@@ -20,7 +20,7 @@ def handle_DH_exchange():
 
 
 def handle_transferred_data(shared_key):
-    middle_socket = Modified_SSL_Handshake.handle_node_connection(5433) # TODO: might need to change port
+    middle_socket = Modified_SSL_Handshake.handle_node_connection(5433)  # TODO: might need to change port
 
     transfer_msg = Functions.read_message_with_delimiter(middle_socket)
     decrypted_data = Functions.aes_decrypt(transfer_msg["iv"], shared_key, transfer_msg["encrypted_data"])
@@ -34,6 +34,8 @@ shared_dh = handle_DH_exchange()
 print("[Offline Node] Established DH: ", shared_dh)
 
 for i in range(1, 10):
+    time.sleep(6)
+    print("handling transfered data...")
     handle_transferred_data(shared_dh)
     print("[Offline Node] Accepted Transferred Data")
-    time.sleep(5)
+
